@@ -2,6 +2,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 import { Extension } from '../Extension.js'
+import { InlineDecoration, NodeDecoration } from '../lib/decorations/index.js'
 
 export const DecorationManager = Extension.create({
   addProseMirrorPlugins() {
@@ -35,6 +36,12 @@ export const DecorationManager = Extension.create({
             }
 
             editor.extensionManager.decorations.forEach(decoration => {
+              decoration.pos = tr.mapping.map(decoration.pos)
+
+              if (decoration instanceof NodeDecoration || decoration instanceof InlineDecoration) {
+                decoration.to = tr.mapping.map(decoration.to)
+              }
+
               const pmDeco = decoration.toProsemirrorDecoration()
 
               if (pmDeco) {

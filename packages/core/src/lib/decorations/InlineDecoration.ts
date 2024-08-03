@@ -22,6 +22,16 @@ export class InlineDecoration extends Decoration {
   }
 
   toProsemirrorDecoration(): PMDecoration {
-    return PMDecoration.inline(this.from, this.to, this.attrs, this.toDOM())
+    return PMDecoration.inline(this.from, this.to, this.attrs)
+  }
+
+  static create(options: {
+    from: number;
+    to: number;
+    attributes?: DecorationAttrs;
+  }) {
+    const dec = new InlineDecoration(options.from, options.to, options.attributes)
+
+    return dec
   }
 }

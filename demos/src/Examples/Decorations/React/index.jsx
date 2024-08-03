@@ -3,41 +3,72 @@ import './styles.scss'
 import { Color } from '@tiptap/extension-color'
 import ListItem from '@tiptap/extension-list-item'
 import TextStyle from '@tiptap/extension-text-style'
-import { EditorProvider, Extension, WidgetDecoration } from '@tiptap/react'
+import {
+  EditorProvider, Extension,
+  NodeDecoration,
+  WidgetDecoration,
+} from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import React from 'react'
-
-class ParagraphDecoration extends WidgetDecoration {
-  type = 'unknown'
-
-  constructor(pos, type) {
-    super(pos)
-    this.type = type
-  }
-
-  toDOM() {
-    const el = document.createElement('div')
-
-    el.classList.add('paragraph-decoration')
-    el.textContent = `[${this.type}]`
-    return el
-  }
-}
 
 const ParagraphDecorationExtension = Extension.create({
   name: 'paragraphDecoration',
 
   addDecorations() {
-    const { editor } = this
+    const decos = [
+      WidgetDecoration.create({
+        pos: 0,
+        toDOM: () => {
+          const el = document.createElement('div')
 
-    const decos = []
+          el.style.padding = '10px'
+          el.style.backgroundColor = 'lightgray'
+          el.style.marginBottom = '10px'
+          el.style.borderRadius = '5px'
+          el.innerText = 'This is a page header'
 
-    editor.state.doc.descendants((node, pos) => {
-      if (node.type.name === 'text') {
-        return
+          return el
+        },
+      }),
+      WidgetDecoration.create({
+        pos: this.editor.state.doc.content.size,
+        toDOM: () => {
+          const el = document.createElement('div')
+
+          el.style.padding = '10px'
+          el.style.backgroundColor = 'lightgray'
+          el.style.marginBottom = '10px'
+          el.style.borderRadius = '5px'
+          el.innerText = 'This is a page footer'
+
+          return el
+        },
+      }),
+    ]
+
+    this.editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'paragraph') {
+        decos.push(
+          NodeDecoration.create({
+            from: pos,
+            to: pos + node.nodeSize,
+            attributes: {
+              style: 'background-color: green; color: white;',
+            },
+          }),
+        )
       }
-
-      decos.push(new ParagraphDecoration(pos + 1, `${node.type.name} {${JSON.stringify(node.attrs)}}`))
+      if (node.type.name === 'heading') {
+        decos.push(
+          NodeDecoration.create({
+            from: pos,
+            to: pos + node.nodeSize,
+            attributes: {
+              style: 'background-color: blue; color: white;',
+            },
+          }),
+        )
+      }
     })
 
     return decos

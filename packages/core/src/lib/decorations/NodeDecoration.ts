@@ -28,4 +28,15 @@ export class NodeDecoration extends Decoration {
   toProsemirrorDecoration(): PMDecoration {
     return PMDecoration.node(this.from, this.to, this.attrs, this.spec)
   }
+
+  static create(options: {
+    from: number;
+    to: number;
+    attributes?: DecorationAttrs;
+    spec?: any;
+  }) {
+    const dec = new NodeDecoration(options.from, options.to, options.attributes, options.spec)
+
+    return dec
+  }
 }
