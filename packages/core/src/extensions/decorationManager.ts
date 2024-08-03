@@ -1,5 +1,5 @@
-import { Plugin, PluginKey } from 'packages/pm/state'
-import { Decoration, DecorationSet } from 'packages/pm/view'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 import { Extension } from '../Extension.js'
 
@@ -13,8 +13,18 @@ export const DecorationManager = Extension.create({
 
         state: {
           init() {
+            const decorations: Decoration[] = []
+
+            editor.extensionManager.decorations.forEach(decoration => {
+              const pmDeco = decoration.toProsemirrorDecoration()
+
+              if (pmDeco) {
+                decorations.push(pmDeco)
+              }
+            })
+
             return {
-              decorations: [],
+              decorations,
             }
           },
           apply(tr, value) {
@@ -41,7 +51,9 @@ export const DecorationManager = Extension.create({
               return null
             }
 
-            return DecorationSet.create(editor.state.doc, this.getState(state)?.decorations || [])
+            const decos = this.getState(state)?.decorations.filter(deco => !!deco) || []
+
+            return DecorationSet.create(editor.state.doc, decos)
           },
         },
       }),
