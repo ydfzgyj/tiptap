@@ -224,11 +224,12 @@ export class Editor extends EventEmitter<EditorEvents> {
    *
    * @param plugin A ProseMirror plugin
    * @param handlePlugins Control how to merge the plugin into the existing plugins.
+   * @returns The new editor state
    */
   public registerPlugin(
     plugin: Plugin,
     handlePlugins?: (newPlugin: Plugin, plugins: Plugin[]) => Plugin[],
-  ): void {
+  ): EditorState {
     const plugins = isFunction(handlePlugins)
       ? handlePlugins(plugin, [...this.state.plugins])
       : [...this.state.plugins, plugin]
@@ -236,16 +237,19 @@ export class Editor extends EventEmitter<EditorEvents> {
     const state = this.state.reconfigure({ plugins })
 
     this.view.updateState(state)
+
+    return state
   }
 
   /**
    * Unregister a ProseMirror plugin.
    *
    * @param nameOrPluginKey The plugins name
+   * @returns The new editor state or undefined if the editor is destroyed
    */
-  public unregisterPlugin(nameOrPluginKey: string | PluginKey): void {
+  public unregisterPlugin(nameOrPluginKey: string | PluginKey): EditorState | undefined {
     if (this.isDestroyed) {
-      return
+      return undefined
     }
 
     // @ts-ignore
@@ -257,6 +261,8 @@ export class Editor extends EventEmitter<EditorEvents> {
     })
 
     this.view.updateState(state)
+
+    return state
   }
 
   /**
@@ -562,6 +568,13 @@ export class Editor extends EventEmitter<EditorEvents> {
     this.emit('destroy')
 
     if (this.view) {
+      // Cleanup our reference to prevent circular references which caused memory leaks
+      // @ts-ignore
+      const dom = this.view.dom as TiptapEditorHTMLElement
+
+      if (dom && dom.editor) {
+        delete dom.editor
+      }
       this.view.destroy()
     }
 
